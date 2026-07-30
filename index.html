@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StoneVision AI — เส้นทางลูกค้า</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;500;600;700;900&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --stone-black:#15130f;
+    --stone-charcoal:#211d17;
+    --stone-charcoal-2:#2a251d;
+    --marble-white:#eee7d9;
+    --marble-white-dim:#c9c0ac;
+    --vein-gold:#b98d3e;
+    --vein-gold-bright:#d9ad5c;
+    --verde-stone:#5c6b57;
+    --stone-gray:#928a76;
+    --rule:rgba(238,231,217,0.12);
+
+    /* per-stage stone identity */
+    --s1:#b7ad98; --s1-dark:#4a4335; /* granito chiaro - awareness */
+    --s2:#7c7a72; --s2-dark:#39372f; /* grigio - explore */
+    --s3:#2c2a26; --s3-dark:#0c0b09; /* nero assoluto - analysis */
+    --s4:#c79a3f; --s4-dark:#4a3714; /* calacatta gold - recommendation */
+    --s5:#5c6b57; --s5-dark:#232a20; /* verde guatemala - decision */
+    --s6:#e8e2d3; --s6-dark:#7a7358; /* bianco carrara - after use */
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--stone-black);
+    color:var(--marble-white);
+    font-family:'Noto Sans Thai','IBM Plex Mono',sans-serif;
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+
+  h1,h2,h3{font-family:'Noto Serif Thai', serif; font-weight:700; letter-spacing:0.01em;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    text-transform:uppercase;
+    letter-spacing:0.28em;
+    font-size:0.72rem;
+    color:var(--vein-gold-bright);
+  }
+
+  a{color:inherit;}
+
+  /* ---------- background vein texture (shared) ---------- */
+  .vein-bg{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 140% 60% at 15% 20%, rgba(238,231,217,0.05), transparent 55%),
+      radial-gradient(ellipse 90% 50% at 85% 75%, rgba(185,141,62,0.07), transparent 60%),
+      repeating-linear-gradient(115deg, rgba(238,231,217,0.025) 0px, rgba(238,231,217,0.025) 1px, transparent 1px, transparent 38px),
+      repeating-linear-gradient(25deg, rgba(185,141,62,0.02) 0px, rgba(185,141,62,0.02) 1px, transparent 1px, transparent 64px);
+    pointer-events:none;
+  }
+
+  /* ============ HERO ============ */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:8vh 6vw 6vh;
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -10%, #2a2419 0%, var(--stone-black) 60%);
+    overflow:hidden;
+    border-bottom:1px solid var(--rule);
+  }
+  .hero .vein-bg{opacity:1;}
+
+  .hero-vein-svg{
+    position:absolute; top:0; right:-10%; height:100%; width:70%;
+    opacity:0.5;
+    mix-blend-mode:screen;
+  }
+
+  .hero-top{
+    position:relative; z-index:2;
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:auto;
+    padding-bottom:10vh;
+  }
+  .brand{
+    font-family:'Noto Serif Thai', serif;
+    font-weight:700;
+    font-size:1.2rem;
+    letter-spacing:0.02em;
+  }
+  .brand span{color:var(--vein-gold-bright);}
+  .brand-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.68rem;
+    color:var(--stone-gray);
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+  }
+
+  .hero-body{position:relative; z-index:2; max-width:920px;}
+  .hero-body .eyebrow{margin-bottom:1.4rem; display:block;}
+  .hero-title{
+    font-size:clamp(2.4rem, 6vw, 5rem);
+    line-height:1.08;
+    color:var(--marble-white);
+  }
+  .hero-title em{
+    font-style:normal;
+    background:linear-gradient(100deg, var(--vein-gold) 0%, var(--vein-gold-bright) 45%, #f0d896 60%, var(--vein-gold) 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero-sub{
+    margin-top:1.8rem;
+    max-width:560px;
+    font-size:1.05rem;
+    color:var(--marble-white-dim);
+    font-weight:300;
+  }
+  .hero-cta-row{
+    margin-top:3rem;
+    display:flex;
+    gap:1.2rem;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .btn-primary{
+    background:linear-gradient(120deg, var(--vein-gold-bright), var(--vein-gold));
+    color:#171207;
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:0.85rem;
+    letter-spacing:0.04em;
+    padding:0.95rem 1.8rem;
+    border:none;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+    transition:transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow:0 8px 26px -10px rgba(185,141,62,0.5);
+  }
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 30px -8px rgba(185,141,62,0.65);}
+  .btn-ghost{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.8rem;
+    color:var(--marble-white-dim);
+    letter-spacing:0.05em;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:2px;
+    text-decoration:none;
+  }
+
+  .hero-stats{
+    position:relative; z-index:2;
+    display:flex;
+    gap:3.5rem;
+    margin-top:5rem;
+    flex-wrap:wrap;
+    border-top:1px solid var(--rule);
+    padding-top:1.6rem;
+  }
+  .hero-stat b{
+    display:block;
+    font-family:'Noto Serif Thai',serif;
+    font-size:1.6rem;
+    color:var(--vein-gold-bright);
+  }
+  .hero-stat span{
+    font-size:0.78rem;
+    color:var(--stone-gray);
+  }
+
+  /* ============ SECTION HEADERS ============ */
+  .section{padding:9vh 6vw; position:relative;}
+  .section-head{max-width:680px; margin-bottom:4.5rem;}
+  .section-head h2{font-size:clamp(1.7rem,3.4vw,2.5rem); margin-top:0.7rem; color:var(--marble-white);}
+  .section-head p{color:var(--stone-gray); margin-top:1rem; max-width:560px; font-size:0.98rem;}
+
+  /* ============ JOURNEY / CORE SAMPLE ============ */
+  .journey{background:var(--stone-charcoal); border-bottom:1px solid var(--rule);}
+
+  .slab-rail{
+    display:grid;
+    grid-template-columns:repeat(6, 1fr);
+    gap:2px;
+    background:var(--rule);
+    border:1px solid var(--rule);
+    margin-bottom:0;
+  }
+  .slab{
+    position:relative;
+    background:var(--stone-black);
+    padding:1.6rem 1rem 1.4rem;
+    cursor:pointer;
+    border:none;
+    text-align:left;
+    color:var(--marble-white-dim);
+    font-family:inherit;
+    transition:background 0.35s ease, color 0.3s ease;
+    min-height:150px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    overflow:hidden;
+  }
+  .slab .swatch{
+    position:absolute; inset:0;
+    opacity:0.16;
+    transition:opacity 0.35s ease;
+  }
+  .slab .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.72rem;
+    color:var(--stone-gray);
+    position:relative; z-index:1;
+  }
+  .slab .label{
+    font-family:'Noto Serif Thai',serif;
+    font-weight:600;
+    font-size:1.05rem;
+    color:var(--marble-white);
+    position:relative; z-index:1;
+    margin-top:0.9rem;
+  }
+  .slab .emo{
+    position:relative; z-index:1;
+    font-size:1.1rem;
+    margin-top:0.6rem;
+  }
+  .slab:hover .swatch, .slab.active .swatch{opacity:0.34;}
+  .slab.active{background:var(--stone-charcoal-2);}
+  .slab.active::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:0; height:3px;
+    background:var(--vein-gold-bright);
+  }
+  .slab:focus-visible{outline:2px solid var(--vein-gold-bright); outline-offset:-2px;}
+
+  /* swatch textures per stage */
+  .swatch-1{background:radial-gradient(circle at 30% 30%, #cfc6ac, #8b8168 90%); }
+  .swatch-2{background:linear-gradient(135deg,#94918a,#4c4a44 60%,#221f1b);}
+  .swatch-3{background:radial-gradient(circle at 70% 20%, #3a3833, #0a0908 80%);}
+  .swatch-4{background:linear-gradient(120deg,#e0b95c,#8a6423 55%,#3d2b10);}
+  .swatch-5{background:radial-gradient(circle at 40% 60%, #7a8c73,#31392c 85%);}
+  .swatch-6{background:linear-gradient(140deg,#f5efe1,#cfc6ab 60%,#9c9377);}
+
+  /* detail panel */
+  .detail-wrap{
+    background:var(--stone-charcoal-2);
+    border:1px solid var(--rule);
+    border-top:none;
+    padding:3rem 2.4rem;
+    position:relative;
+    overflow:hidden;
+  }
+  .detail-glow{
+    position:absolute; top:-40%; left:-10%; width:60%; height:180%;
+    filter:blur(60px);
+    opacity:0.25;
+    pointer-events:none;
+    transition:background 0.4s ease;
+  }
+  .detail-grid{
+    position:relative; z-index:1;
+    display:grid;
+    grid-template-columns:1.1fr 1fr 1fr;
+    gap:2.4rem;
+  }
+  .detail-quote{
+    grid-column:1/-1;
+    font-family:'Noto Serif Thai',serif;
+    font-size:1.5rem;
+    color:var(--marble-white);
+    font-weight:500;
+    line-height:1.5;
+    border-left:3px solid var(--vein-gold-bright);
+    padding-left:1.4rem;
+    margin-bottom:0.6rem;
+  }
+  .detail-quote .emo-big{font-size:1.3rem; margin-right:0.5rem;}
+  .dcol .eyebrow{margin-bottom:0.7rem;}
+  .dcol p{color:var(--marble-white-dim); font-size:0.95rem;}
+  .dcol .chips{display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.3rem;}
+  .chip{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.74rem;
+    color:var(--marble-white);
+    border:1px solid var(--rule);
+    padding:0.35rem 0.7rem;
+    background:rgba(238,231,217,0.03);
+  }
+  .dcol.pain p{color:#d99a7c;}
+  .dcol.feat p{color:#cddcc6;}
+
+  @media (max-width:900px){
+    .slab-rail{grid-template-columns:repeat(3,1fr);}
+    .detail-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .slab-rail{grid-template-columns:repeat(2,1fr);}
+    .hero-stats{gap:2rem;}
+  }
+
+  /* ============ EMOTION STRIP ============ */
+  .emotion-strip{
+    display:flex;
+    justify-content:space-between;
+    padding:0 6vw 8vh;
+    flex-wrap:wrap;
+    gap:1rem;
+    background:var(--stone-charcoal);
+  }
+  .estep{
+    flex:1;
+    min-width:130px;
+    text-align:center;
+    position:relative;
+    padding-top:1.6rem;
+  }
+  .estep::before{
+    content:"";
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:8px; height:8px; border-radius:50%;
+    background:var(--vein-gold-bright);
+  }
+  .estep .e{font-size:1.6rem;}
+  .estep .t{font-size:0.85rem; color:var(--stone-gray); margin-top:0.3rem;}
+
+  /* ============ SYSTEM SECTION ============ */
+  .footer{
+    padding:5vh 6vw;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:1rem;
+    border-top:1px solid var(--rule);
+    color:var(--stone-gray);
+    font-size:0.82rem;
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="vein-bg"></div>
+  <svg class="hero-vein-svg" viewBox="0 0 500 900" xmlns="http://www.w3.org/2000/svg">
+    <path d="M60 0 C120 140 20 220 140 340 C230 430 90 520 200 640 C280 720 160 800 260 900" stroke="#d9ad5c" stroke-width="1.4" fill="none" opacity="0.55"/>
+    <path d="M180 0 C240 120 340 200 260 320 C190 420 340 500 260 620 C210 700 320 780 250 900" stroke="#eee7d9" stroke-width="0.8" fill="none" opacity="0.3"/>
+    <path d="M340 40 C380 160 300 260 400 380 C470 460 360 560 420 660 C460 740 380 820 430 900" stroke="#b98d3e" stroke-width="1" fill="none" opacity="0.4"/>
+  </svg>
+
+  <div class="hero-top">
+    <div class="brand">Stone<span>Vision</span> AI</div>
+    <div class="brand-tag mono">Granite &amp; Marble Intelligence</div>
+  </div>
+
+  <div class="hero-body">
+    <span class="eyebrow">แผนที่เส้นทางลูกค้า — หินแกรนิตและหินอ่อน</span>
+    <h1 class="hero-title">อ่านลายหิน<br>ให้ขาดเหมือน<em>อ่านใจลูกค้า</em></h1>
+    <p class="hero-sub">ตั้งแต่วันที่ลูกค้ายังไม่รู้จักชนิดหิน จนถึงวันที่เก็บผลงานไว้อวดคนอื่น
+    StoneVision AI ออกแบบทุกจุดสัมผัสให้ตอบคำถามที่ลูกค้ายังไม่ทันถาม</p>
+    <div class="hero-cta-row">
+      <a href="#journey" class="btn-primary">สำรวจเส้นทางลูกค้า ↓</a>
+      <a href="#emotion" class="btn-ghost">ดูอารมณ์ลูกค้าตลอดเส้นทาง</a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat"><b>6</b><span class="mono">ขั้นตอนการเดินทาง</span></div>
+    <div class="hero-stat"><b>12+</b><span class="mono">จุดสัมผัสลูกค้า</span></div>
+    <div class="hero-stat"><b>AI</b><span class="mono">วิเคราะห์รอยร้าว &amp; แนะนำหิน</span></div>
+  </div>
+</section>
+
+<section class="section journey" id="journey">
+  <div class="section-head">
+    <span class="eyebrow">Customer Journey</span>
+    <h2>ตัดหน้าตัดหิน 6 ชั้น ของประสบการณ์ลูกค้า</h2>
+    <p>แต่ละชั้นคือหินคนละก้อน คนละอารมณ์ — กดเลือกชั้นหินเพื่อดูสิ่งที่ลูกค้าต้องการ คิด รู้สึก
+    และติดขัดอยู่ตรงไหน พร้อมฟีเจอร์ระบบที่ตอบโจทย์ชั้นนั้น</p>
+  </div>
+
+  <div class="slab-rail" role="tablist" aria-label="ขั้นตอนเส้นทางลูกค้า">
+    <button class="slab active" data-stage="0" role="tab" aria-selected="true">
+      <div class="swatch swatch-1"></div>
+      <span class="num">01 / AWARENESS</span>
+      <span class="label">รับรู้</span>
+      <span class="emo">🤔</span>
+    </button>
+    <button class="slab" data-stage="1" role="tab" aria-selected="false">
+      <div class="swatch swatch-2"></div>
+      <span class="num">02 / EXPLORE</span>
+      <span class="label">สำรวจ</span>
+      <span class="emo">🔍</span>
+    </button>
+    <button class="slab" data-stage="2" role="tab" aria-selected="false">
+      <div class="swatch swatch-3"></div>
+      <span class="num">03 / ANALYSIS</span>
+      <span class="label">วิเคราะห์</span>
+      <span class="emo">😲</span>
+    </button>
+    <button class="slab" data-stage="3" role="tab" aria-selected="false">
+      <div class="swatch swatch-4"></div>
+      <span class="num">04 / RECOMMEND</span>
+      <span class="label">คำแนะนำ</span>
+      <span class="emo">😌</span>
+    </button>
+    <button class="slab" data-stage="4" role="tab" aria-selected="false">
+      <div class="swatch swatch-5"></div>
+      <span class="num">05 / DECISION</span>
+      <span class="label">ตัดสินใจ</span>
+      <span class="emo">😊</span>
+    </button>
+    <button class="slab" data-stage="5" role="tab" aria-selected="false">
+      <div class="swatch swatch-6"></div>
+      <span class="num">06 / AFTER USE</span>
+      <span class="label">หลังใช้งาน</span>
+      <span class="emo">❤️</span>
+    </button>
+  </div>
+
+  <div class="detail-wrap">
+    <div class="detail-glow" id="glow"></div>
+    <div class="detail-grid" id="detail-content"></div>
+  </div>
+</section>
+
+<section class="section" id="emotion" style="background:var(--stone-charcoal); padding-top:2vh;">
+  <div class="section-head" style="margin-bottom:2.5rem;">
+    <span class="eyebrow">Emotional Arc</span>
+    <h2>ความรู้สึกลูกค้า ไล่ตั้งแต่ต้นจนจบ</h2>
+  </div>
+  <div class="emotion-strip">
+    <div class="estep"><div class="e">🤔</div><div class="t">Curious</div></div>
+    <div class="estep"><div class="e">🔍</div><div class="t">Interested</div></div>
+    <div class="estep"><div class="e">😲</div><div class="t">Expecting</div></div>
+    <div class="estep"><div class="e">😌</div><div class="t">Confident</div></div>
+    <div class="estep"><div class="e">😊</div><div class="t">Satisfied</div></div>
+    <div class="estep"><div class="e">❤️</div><div class="t">Trust</div></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div>© StoneVision AI — Granite &amp; Marble Intelligence Platform</div>
+  <div class="mono">Journey mapped: Awareness → After Use</div>
+</footer>
+
+<script>
+const stages = [
+  {
+    stage:"AWARENESS", emo:"🤔", color:"#8b8168",
+    thought:"เว็บนี้ช่วยเลือกหินได้จริงไหม?",
+    needs:"ต้องการหินที่เหมาะกับการใช้งาน",
+    touch:["Google","Facebook","Website","QR Code"],
+    pain:"ไม่รู้จักชนิดของหิน",
+    feat:["Landing Page พร้อมตัวอย่างผลงาน"]
+  },
+  {
+    stage:"EXPLORE", emo:"🔍", color:"#94918a",
+    thought:"หินแบบไหนเหมาะกับบ้านเรา?",
+    needs:"ต้องการข้อมูลของหินแต่ละประเภท",
+    touch:["หน้าเว็บ StoneVision","Catalog","AI Chat"],
+    pain:"ข้อมูลเยอะ เปรียบเทียบยาก",
+    feat:["AI Chat","Stone Catalog"]
+  },
+  {
+    stage:"ANALYSIS", emo:"😲", color:"#3a3833",
+    thought:"AI วิเคราะห์แม่นไหม?",
+    needs:"อยากรู้ว่าหินมีตำหนิหรือไม่",
+    touch:["Upload รูปหิน","AI Vision"],
+    pain:"กลัว AI วิเคราะห์ผิด",
+    feat:["AI Crack Detection","Image Quality Check"]
+  },
+  {
+    stage:"RECOMMENDATION", emo:"😌", color:"#8a6423",
+    thought:"ตัวไหนเหมาะกับงบของเรา?",
+    needs:"ต้องการคำแนะนำจาก AI",
+    touch:["AI Chatbot","Recommendation"],
+    pain:"เลือกไม่ถูก",
+    feat:["Recommendation System"]
+  },
+  {
+    stage:"DECISION", emo:"😊", color:"#31392c",
+    thought:"ราคาประมาณเท่าไหร่?",
+    needs:"ต้องการทราบราคาและตัดสินใจ",
+    touch:["Price Calculator","Quote"],
+    pain:"ไม่รู้ราคาจริง",
+    feat:["Price Estimator","Request Quote"]
+  },
+  {
+    stage:"AFTER USE", emo:"❤️", color:"#9c9377",
+    thought:"บันทึกไว้เพื่อกลับมาดูอีก",
+    needs:"ต้องการเก็บผลลัพธ์หรือกลับมาดูภายหลัง",
+    touch:["History","Download Report"],
+    pain:"หา History ไม่เจอ",
+    feat:["Save History","Export PDF"]
+  }
+];
+
+const slabs = document.querySelectorAll('.slab');
+const detailContent = document.getElementById('detail-content');
+const glow = document.getElementById('glow');
+
+function render(i){
+  const s = stages[i];
+  glow.style.background = `radial-gradient(circle, ${s.color}, transparent 70%)`;
+  detailContent.innerHTML = `
+    <div class="detail-quote"><span class="emo-big">${s.emo}</span>"${s.thought}"</div>
+    <div class="dcol">
+      <span class="eyebrow">Customer Needs</span>
+      <p>${s.needs}</p>
+    </div>
+    <div class="dcol">
+      <span class="eyebrow">Touchpoints</span>
+      <div class="chips">${s.touch.map(t=>`<span class="chip">${t}</span>`).join('')}</div>
+    </div>
+    <div class="dcol pain">
+      <span class="eyebrow">Pain Point</span>
+      <p>${s.pain}</p>
+    </div>
+    <div class="dcol feat" style="grid-column:1/-1;">
+      <span class="eyebrow">System Features</span>
+      <div class="chips">${s.feat.map(t=>`<span class="chip">${t}</span>`).join('')}</div>
+    </div>
+  `;
+}
+
+slabs.forEach(slab=>{
+  slab.addEventListener('click', ()=>{
+    slabs.forEach(x=>{x.classList.remove('active'); x.setAttribute('aria-selected','false');});
+    slab.classList.add('active');
+    slab.setAttribute('aria-selected','true');
+    render(parseInt(slab.dataset.stage));
+  });
+});
+
+render(0);
+</script>
+
+</body>
+</html>
